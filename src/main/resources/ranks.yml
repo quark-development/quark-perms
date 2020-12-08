@@ -1,0 +1,26 @@
+Owner:
+  prefix: "&c[OWNER]"
+  inheritance:
+    - Admin
+  permissions:
+    - *
+
+Admin:
+  prefix: "&c[ADMIN]"
+  inheritance:
+    - Mod
+  permissions:
+    - insert.admin.permissions
+
+Mod:
+  prefix: "&a[MOD]"
+  inheritance:
+    - Member
+  permissions:
+    - insert.mod.permissions
+
+Member:
+  default: true
+  prefix: "&7[Member]"
+  permissions:
+    - essentials.fly

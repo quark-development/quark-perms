@@ -1,0 +1,5 @@
+main: dev.quark.quarkperms.QuarkPerms
+name: QuarkPerms
+version: "DEV-1.0"
+description: "A complete permissions core"
+author: "iHells"
