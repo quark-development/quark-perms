@@ -1,4 +1,4 @@
-package dev.quark.quarkperms.player;
+package dev.quark.quarkperms.playerdata;
 
 import dev.quark.quarkperms.rank.Rank;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class QPlayer {
+public class PlayerData {
 
     private final UUID uuid;
     private String name;

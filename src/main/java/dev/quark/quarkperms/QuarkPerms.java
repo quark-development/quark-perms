@@ -2,10 +2,13 @@ package dev.quark.quarkperms;
 
 import dev.quark.quarkperms.database.MongoManager;
 import dev.quark.quarkperms.database.SQLManager;
+import dev.quark.quarkperms.expansions.PAPIExpansion;
 import dev.quark.quarkperms.framework.command.CommandFramework;
 import dev.quark.quarkperms.framework.config.manager.ConfigManager;
+import dev.quark.quarkperms.playerdata.manager.PlayerDataManagement;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter @Setter
@@ -19,10 +22,19 @@ public class QuarkPerms extends JavaPlugin {
     private SQLManager sqlManager;
     private MongoManager mongoManager;
 
+    private PlayerDataManagement playerDataManagement;
+
     public void onEnable() {
         instance = this;
         framework = new CommandFramework(this);
 
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            PAPIExpansion papiExpansion = new PAPIExpansion();
+
+            if (papiExpansion.canRegister()) {
+                papiExpansion.register();
+            }
+        }
         registerManagers();
 
         getLogger().info("Plugin enabled successfully!");
@@ -38,6 +50,8 @@ public class QuarkPerms extends JavaPlugin {
         configManager = new ConfigManager();
         sqlManager = new SQLManager();
         mongoManager = new MongoManager();
+
+        playerDataManagement = new PlayerDataManagement(this);
     }
 
 }
