@@ -2,7 +2,7 @@
 [logo]: https://cdn.discordapp.com/attachments/773619935476973588/785936266813898762/Quark_Text.png
 [spigot-url]: https://spigotmc.org/resources/1234/
 
-[issue-tracker-url]: https://github.com/QuarkDevelopment/quark-perms/issues
+[issue-tracker-url]: https://github.com/quark-development/quark-perms/issues
 [discord-url]: brandon put link here
 
 <!-- Content for README -->
