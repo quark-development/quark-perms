@@ -25,6 +25,20 @@ public class PlayerDataManagement {
 
     public void registerPlayerData(UUID uuid, String name) {
 
+        if (main.isSql()) {
+            registerFromSql(uuid, name);
+        } else if (main.isMongo()) {
+            registerFromMongo(uuid, name);
+        } else {
+            register(uuid, name);
+        }
+
     }
+
+    public void register(UUID uuid, String name) {}
+
+    public void registerFromSql(UUID uuid, String name) {}
+
+    public void registerFromMongo(UUID uuid, String name) {}
 
 }

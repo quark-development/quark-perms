@@ -14,6 +14,7 @@ public class ConfigManager {
     private final Set<ConfigurationFile> configs = new HashSet<>();
 
     public ConfigManager() {
+        configs.add(new ConfigurationFile("config"));
         configs.add(new ConfigurationFile("db"));
         configs.add(new ConfigurationFile("messages"));
         configs.add(new ConfigurationFile("player-data"));

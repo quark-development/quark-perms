@@ -1,0 +1,2 @@
+data: "FILE"
+## "FILE", "MONGO" or "SQL" - will default to FILE

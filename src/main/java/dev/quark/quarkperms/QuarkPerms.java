@@ -24,6 +24,9 @@ public class QuarkPerms extends JavaPlugin {
 
     private PlayerDataManagement playerDataManagement;
 
+    private boolean sql = false;
+    private boolean mongo = false;
+
     public void onEnable() {
         instance = this;
         framework = new CommandFramework(this);
@@ -48,8 +51,15 @@ public class QuarkPerms extends JavaPlugin {
 
     protected void registerManagers() {
         configManager = new ConfigManager();
-        sqlManager = new SQLManager();
-        mongoManager = new MongoManager();
+
+        if (configManager.getFile("config").getConfig().getString("data").equalsIgnoreCase("SQL")) {
+            sql = true;
+        } else if (configManager.getFile("config").getConfig().getString("data").equalsIgnoreCase("MONGO")) {
+            mongo = true;
+        }
+
+        if (sql) sqlManager = new SQLManager();
+        if (mongo) mongoManager = new MongoManager();
 
         playerDataManagement = new PlayerDataManagement(this);
     }
