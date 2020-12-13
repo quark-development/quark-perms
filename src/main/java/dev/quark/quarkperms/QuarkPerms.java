@@ -1,11 +1,13 @@
 package dev.quark.quarkperms;
 
+import dev.quark.quarkperms.commands.RankCommand;
 import dev.quark.quarkperms.database.MongoManager;
 import dev.quark.quarkperms.database.SQLManager;
 import dev.quark.quarkperms.expansions.PAPIExpansion;
-import dev.quark.quarkperms.framework.command.CommandFramework;
+import dev.quark.quarkperms.framework.command.QuarkFramework;
 import dev.quark.quarkperms.framework.config.manager.ConfigManager;
-import dev.quark.quarkperms.playerdata.manager.PlayerDataManagement;
+import dev.quark.quarkperms.playerdata.manager.PlayerManager;
+import dev.quark.quarkperms.rank.manager.RankManager;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -16,20 +18,21 @@ public class QuarkPerms extends JavaPlugin {
 
     @Getter public static QuarkPerms instance;
 
-    private CommandFramework framework;
+    private QuarkFramework framework;
 
     private ConfigManager configManager;
     private SQLManager sqlManager;
     private MongoManager mongoManager;
 
-    private PlayerDataManagement playerDataManagement;
+    private PlayerManager playerManager;
+    private RankManager rankManager;
 
     private boolean sql = false;
     private boolean mongo = false;
 
     public void onEnable() {
         instance = this;
-        framework = new CommandFramework(this);
+        framework = new QuarkFramework(this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             PAPIExpansion papiExpansion = new PAPIExpansion();
@@ -39,6 +42,7 @@ public class QuarkPerms extends JavaPlugin {
             }
         }
         registerManagers();
+        registerCommands();
 
         getLogger().info("Plugin enabled successfully!");
     }
@@ -61,7 +65,12 @@ public class QuarkPerms extends JavaPlugin {
         if (sql) sqlManager = new SQLManager();
         if (mongo) mongoManager = new MongoManager();
 
-        playerDataManagement = new PlayerDataManagement(this);
+        rankManager = new RankManager();
+        playerManager = new PlayerManager();
+    }
+
+    protected void registerCommands() {
+        new RankCommand(framework);
     }
 
 }

@@ -1,0 +1,7 @@
+uuid:
+  ranks:
+    - "rank1"
+    - "rank2"
+  permissions:
+    - "permission1"
+    - "permission2"

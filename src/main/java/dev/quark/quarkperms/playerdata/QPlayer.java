@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class PlayerData {
+public class QPlayer {
 
     private final UUID uuid;
     private String name;

@@ -14,19 +14,13 @@ import java.util.List;
  * An implementation of Bukkit's Command class allowing for registering of
  * commands without plugin.yml
  */
-public class BukkitCommand extends org.bukkit.command.Command {
+public class QuarkCommand extends org.bukkit.command.Command {
 
     private final Plugin owningPlugin;
     protected BukkitCompleter completer;
     private final CommandExecutor executor;
 
-    /**
-     * A slimmed down PluginCommand
-     *
-     * @param name
-     * @param owner
-     */
-    protected BukkitCommand(String label, CommandExecutor executor, Plugin owner) {
+    protected QuarkCommand(String label, CommandExecutor executor, Plugin owner) {
         super(label);
         this.executor = executor;
         this.owningPlugin = owner;

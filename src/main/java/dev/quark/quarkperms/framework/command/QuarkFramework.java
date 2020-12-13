@@ -25,7 +25,7 @@ import java.util.Map.Entry;
  *
  * @author minnymin3
  */
-public class CommandFramework implements CommandExecutor {
+public class QuarkFramework implements CommandExecutor {
 
     private final Map<String, Entry<Method, Object>> commandMap = new HashMap<String, Entry<Method, Object>>();
     private CommandMap map;
@@ -34,7 +34,7 @@ public class CommandFramework implements CommandExecutor {
     /**
      * Initializes the command framework and sets up the command maps
      */
-    public CommandFramework(Plugin plugin) {
+    public QuarkFramework(Plugin plugin) {
         this.plugin = plugin;
         if (plugin.getServer().getPluginManager() instanceof SimplePluginManager) {
             SimplePluginManager manager = (SimplePluginManager) plugin.getServer().getPluginManager();
@@ -77,10 +77,12 @@ public class CommandFramework implements CommandExecutor {
                 buffer.append("." + args[x].toLowerCase());
             }
             String cmdLabel = buffer.toString();
+
             if (commandMap.containsKey(cmdLabel)) {
                 Method method = commandMap.get(cmdLabel).getKey();
                 Object methodObject = commandMap.get(cmdLabel).getValue();
                 Command command = method.getAnnotation(Command.class);
+
                 if (!command.permission().equals("") && !sender.hasPermission(command.permission())) {
                     sender.sendMessage(command.noPerm());
                     return true;
@@ -126,8 +128,7 @@ public class CommandFramework implements CommandExecutor {
                 }
             } else if (m.getAnnotation(Completer.class) != null) {
                 Completer comp = m.getAnnotation(Completer.class);
-                if (m.getParameterTypes().length > 1 || m.getParameterTypes().length == 0
-                        || m.getParameterTypes()[0] != CommandArgs.class) {
+                if (m.getParameterTypes().length != 1 || m.getParameterTypes()[0] != CommandArgs.class) {
                     System.out.println("Unable to register tab completer " + m.getName()
                             + ". Unexpected method arguments");
                     continue;
@@ -166,7 +167,7 @@ public class CommandFramework implements CommandExecutor {
         commandMap.put(this.plugin.getName() + ':' + label.toLowerCase(), new AbstractMap.SimpleEntry<Method, Object>(m, obj));
         String cmdLabel = label.split("\\.")[0].toLowerCase();
         if (map.getCommand(cmdLabel) == null) {
-            org.bukkit.command.Command cmd = new BukkitCommand(cmdLabel, this, plugin);
+            org.bukkit.command.Command cmd = new QuarkCommand(cmdLabel, this, plugin);
             map.register(plugin.getName(), cmd);
         }
         if (!command.description().equalsIgnoreCase("") && cmdLabel.equals(label)) {
@@ -180,11 +181,11 @@ public class CommandFramework implements CommandExecutor {
     public void registerCompleter(String label, Method m, Object obj) {
         String cmdLabel = label.split("\\.")[0].toLowerCase();
         if (map.getCommand(cmdLabel) == null) {
-            org.bukkit.command.Command command = new BukkitCommand(cmdLabel, this, plugin);
+            org.bukkit.command.Command command = new QuarkCommand(cmdLabel, this, plugin);
             map.register(plugin.getName(), command);
         }
-        if (map.getCommand(cmdLabel) instanceof BukkitCommand) {
-            BukkitCommand command = (BukkitCommand) map.getCommand(cmdLabel);
+        if (map.getCommand(cmdLabel) instanceof QuarkCommand) {
+            QuarkCommand command = (QuarkCommand) map.getCommand(cmdLabel);
             if (command.completer == null) {
                 command.completer = new BukkitCompleter();
             }
