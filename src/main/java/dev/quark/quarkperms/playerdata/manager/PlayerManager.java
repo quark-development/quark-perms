@@ -6,11 +6,9 @@ import dev.quark.quarkperms.rank.Rank;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionAttachment;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class PlayerManager {
 
@@ -37,29 +35,75 @@ public class PlayerManager {
             registerFromFile(uuid);
         }
 
+        // REGISTER THEIR PERMISSIONS HERE
+
+    }
+
+    public void unregister(Player player) {
+        QPlayer qp = get(player);
+        saveToFile(qp);
+
+        playerData.remove(qp);
+        if (qp.getAttachment() != null) player.removeAttachment(qp.getAttachment());
+        qp.reset();
     }
 
     public void registerFromFile(UUID uuid) {
-        QPlayer qp = new QPlayer(uuid);
+        QPlayer qp = (get(uuid) != null ? get(uuid) : new QPlayer(uuid));
         qp.setName(Bukkit.getPlayer(uuid).getName());
+
+        PermissionAttachment attachment = Bukkit.getPlayer(uuid).addAttachment(core);
+        qp.setAttachment(attachment);
+
+        /* THEY HAVE PLAYER DATA */
         if (dataFile.getConfigurationSection("").getKeys(false).contains(uuid.toString())) {
-            /* THEY HAVE PLAYER DATA */
 
+            /* IF THEY HAVE RANKS IN THE FILE */
             if (dataFile.getStringList(uuid.toString() + ".ranks") != null) {
-
+                List<Rank> ranks = new ArrayList<>();
                 for (String rank : dataFile.getStringList(uuid.toString() + ".ranks")) {
+                    if (core.getRankManager().get(rank.toLowerCase()) != null) ranks.add(core.getRankManager().get(rank.toLowerCase()));
+                } qp.setRanks(ranks);
+            } else { qp.setRanks(Collections.singletonList(core.getRankManager().getDefault())); }
 
-                    if ()
-
-                }
-
-            }
-
-            List<String> ranks = dataFile.getStringList(uuid.toString() + ".ranks");
+            /* IF THEY HAVE PERMISSIONS IN THE FILE */
+            if (dataFile.get(uuid.toString() + ".permissions") != null) {
+                qp.setPermissions(dataFile.getStringList(uuid.toString() + ".permissions"));
+            } else { qp.setPermissions(new ArrayList<>()); }
 
         } else {
 
+            /* SET DEFAULTS */
+            qp.setRanks(Collections.singletonList(core.getRankManager().getDefault()));
+            qp.setPermissions(new ArrayList<>());
+
+            /* UPDATE FILE */
+            saveToFile(qp);
+
         }
+
+        playerData.add(qp);
+    }
+
+    public void saveToFile(QPlayer qp) {
+        List<String> ranks = new ArrayList<>();
+        for (Rank rank : qp.getRanks()) { ranks.add(rank.getName()); }
+        dataFile.set(qp.getUuid().toString() + ".ranks", ranks);
+        dataFile.set(qp.getUuid().toString() + ".permissions", qp.getPermissions());
+        core.saveFiles();
+        core.reloadFiles();
+    }
+
+    public QPlayer get(Player player) {
+        for (QPlayer qp : playerData) {
+            if (qp.getUuid().equals(player.getUniqueId())) return qp;
+        } return null;
+    }
+
+    public QPlayer get(UUID uuid) {
+        for (QPlayer qp : playerData) {
+            if (qp.getUuid().equals(uuid)) return qp;
+        } return null;
     }
 
     public void registerFromSql(UUID uuid) {
@@ -67,6 +111,10 @@ public class PlayerManager {
     }
 
     public void registerFromMongo(UUID uuid) {
+
+    }
+
+    public void reloadPlayer(Player player) {
 
     }
 
