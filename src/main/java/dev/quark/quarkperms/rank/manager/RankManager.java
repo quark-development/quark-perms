@@ -41,14 +41,31 @@ public class RankManager {
         }
 
         /* SET PERMS */
-        if (ranksFile.get(name + ".permissions") != null) { // set perms
+        if (ranksFile.get(name + ".permissions") != null) {
             rank.setPermissions(ranksFile.getStringList(name+".permissions"));
         }
 
+        /* SET INHERITANCE */
+        if (ranksFile.get(name + ".inheritance") != null) {
+            List<Rank> ranks = new ArrayList<>();
+            for (String str : ranksFile.getStringList(name + ".inheritance")) {
+                if (core.getRankManager().get(str) != null) ranks.add(core.getRankManager().get(str));
+            }
+            rank.setInheritance(ranks);
+        }
+
+        allRanks.add(rank);
     }
 
     public Rank get(String name) {
-        return null;
+        for (Rank r : allRanks) {
+            if (name.toLowerCase().equals(r.getName())) return r;
+        } return null;
+    }
+    public Rank getDefault() {
+        for (Rank r : allRanks) {
+            if (r.isDefault()) return r;
+        } return null;
     }
 
 }
