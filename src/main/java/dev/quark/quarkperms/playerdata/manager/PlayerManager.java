@@ -1,6 +1,7 @@
 package dev.quark.quarkperms.playerdata.manager;
 
 import dev.quark.quarkperms.QuarkPerms;
+import dev.quark.quarkperms.framework.config.ConfigurationFile;
 import dev.quark.quarkperms.playerdata.QPlayer;
 import dev.quark.quarkperms.rank.Rank;
 import org.bukkit.Bukkit;
@@ -39,12 +40,19 @@ public class PlayerManager {
 
     }
 
-    public void unregister(Player player) {
-        QPlayer qp = get(player);
+    public void unregister(UUID uuid) {
+        QPlayer qp = get(uuid);
         saveToFile(qp);
 
         playerData.remove(qp);
-        if (qp.getAttachment() != null) player.removeAttachment(qp.getAttachment());
+        if (qp.getAttachment() != null) qp.getPlayer().removeAttachment(qp.getAttachment());
+        qp.reset();
+    }
+
+    public void unregisterWithoutSave(UUID uuid) {
+        QPlayer qp = get(uuid);
+        playerData.remove(qp);
+        if (qp.getAttachment() != null) qp.getPlayer().removeAttachment(qp.getAttachment());
         qp.reset();
     }
 
@@ -90,8 +98,10 @@ public class PlayerManager {
         for (Rank rank : qp.getRanks()) { ranks.add(rank.getName()); }
         dataFile.set(qp.getUuid().toString() + ".ranks", ranks);
         dataFile.set(qp.getUuid().toString() + ".permissions", qp.getPermissions());
-        core.saveFiles();
-        core.reloadFiles();
+
+        ConfigurationFile file = core.getConfigManager().getFile("player-data");
+        file.saveConfig();
+        file.reloadConfig();
     }
 
     public QPlayer get(Player player) {
@@ -114,8 +124,9 @@ public class PlayerManager {
 
     }
 
-    public void reloadPlayer(Player player) {
-
+    public void reloadPlayer(QPlayer qp) {
+        unregister(qp.getUuid());
+        register(qp.getUuid());
     }
 
 }

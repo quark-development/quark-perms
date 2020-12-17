@@ -32,4 +32,10 @@ public class ConfigManager {
         }
     }
 
+    public void reloadAll() {
+        for (ConfigurationFile config : this.configs) {
+            config.reloadConfig();
+        }
+    }
+
 }
