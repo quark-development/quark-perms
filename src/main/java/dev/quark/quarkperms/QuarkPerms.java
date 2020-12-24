@@ -6,6 +6,7 @@ import dev.quark.quarkperms.database.SQLManager;
 import dev.quark.quarkperms.expansions.PAPIExpansion;
 import dev.quark.quarkperms.framework.command.QuarkFramework;
 import dev.quark.quarkperms.framework.config.manager.ConfigManager;
+import dev.quark.quarkperms.permission.PermissionManager;
 import dev.quark.quarkperms.playerdata.manager.PlayerManager;
 import dev.quark.quarkperms.rank.manager.RankManager;
 import lombok.Getter;
@@ -24,8 +25,9 @@ public class QuarkPerms extends JavaPlugin {
     private SQLManager sqlManager;
     private MongoManager mongoManager;
 
-    private PlayerManager playerManager;
+    private PermissionManager permissionManager;
     private RankManager rankManager;
+    private PlayerManager playerManager;
 
     private boolean sql = false;
     private boolean mongo = false;
@@ -65,6 +67,7 @@ public class QuarkPerms extends JavaPlugin {
         if (sql) sqlManager = new SQLManager();
         if (mongo) mongoManager = new MongoManager();
 
+        permissionManager = new PermissionManager();
         rankManager = new RankManager();
         playerManager = new PlayerManager();
     }

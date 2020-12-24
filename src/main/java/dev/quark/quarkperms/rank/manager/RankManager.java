@@ -1,6 +1,7 @@
 package dev.quark.quarkperms.rank.manager;
 
 import dev.quark.quarkperms.QuarkPerms;
+import dev.quark.quarkperms.playerdata.QPlayer;
 import dev.quark.quarkperms.rank.Rank;
 import dev.quark.quarkperms.utils.CC;
 import lombok.Getter;
@@ -66,6 +67,14 @@ public class RankManager {
         for (Rank r : allRanks) {
             if (r.isDefault()) return r;
         } return null;
+    }
+
+    public Rank getHighest(List<Rank> ranks) {
+        Rank toReturn = getDefault();
+        for (Rank rank : ranks) {
+            if (rank.getPriority() > toReturn.getPriority()) toReturn = rank;
+        }
+        return toReturn;
     }
 
 }

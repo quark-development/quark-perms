@@ -36,7 +36,7 @@ public class PlayerManager {
             registerFromFile(uuid);
         }
 
-        // REGISTER THEIR PERMISSIONS HERE
+        core.getPermissionManager().applyAllPermissions(get(uuid));
 
     }
 
@@ -125,7 +125,7 @@ public class PlayerManager {
     }
 
     public void reloadPlayer(QPlayer qp) {
-        unregister(qp.getUuid());
+        unregisterWithoutSave(qp.getUuid());
         register(qp.getUuid());
     }
 
