@@ -1,7 +1,6 @@
 package dev.quark.quarkperms.rank.manager;
 
 import dev.quark.quarkperms.QuarkPerms;
-import dev.quark.quarkperms.playerdata.QPlayer;
 import dev.quark.quarkperms.rank.Rank;
 import dev.quark.quarkperms.utils.CC;
 import lombok.Getter;
@@ -50,7 +49,7 @@ public class RankManager {
         if (ranksFile.get(name + ".inheritance") != null) {
             List<Rank> ranks = new ArrayList<>();
             for (String str : ranksFile.getStringList(name + ".inheritance")) {
-                if (core.getRankManager().get(str) != null) ranks.add(core.getRankManager().get(str));
+                if (get(str) != null) ranks.add(get(str));
             }
             rank.setInheritance(ranks);
         }
@@ -72,7 +71,7 @@ public class RankManager {
     public Rank getHighest(List<Rank> ranks) {
         Rank toReturn = getDefault();
         for (Rank rank : ranks) {
-            if (rank.getPriority() > toReturn.getPriority()) toReturn = rank;
+            if (rank.getPriority() < toReturn.getPriority()) toReturn = rank;
         }
         return toReturn;
     }

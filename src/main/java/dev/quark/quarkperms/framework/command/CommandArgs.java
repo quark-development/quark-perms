@@ -98,11 +98,7 @@ public class CommandArgs {
     }
 
     public Player getPlayer() {
-        if (sender instanceof Player) {
-            return (Player) sender;
-        } else {
-            return null;
-        }
+        return (sender instanceof Player ? ((Player) sender) : null);
     }
 
 }

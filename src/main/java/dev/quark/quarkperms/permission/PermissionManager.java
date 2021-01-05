@@ -3,10 +3,11 @@ package dev.quark.quarkperms.permission;
 import dev.quark.quarkperms.QuarkPerms;
 import dev.quark.quarkperms.playerdata.QPlayer;
 import dev.quark.quarkperms.rank.Rank;
+import org.bukkit.Bukkit;
+import org.bukkit.permissions.Permission;
+import org.bukkit.plugin.Plugin;
 
 public class PermissionManager {
-
-    private final QuarkPerms core = QuarkPerms.getInstance();
 
     public void applyPermission(String permission, QPlayer player) {
         if (!permission.equals("*")) {
@@ -16,7 +17,11 @@ public class PermissionManager {
                 player.getAttachment().setPermission(permission, true);
             }
         } else {
-            // all perms
+            for (Plugin plugin : Bukkit.getServer().getPluginManager().getPlugins()) {
+                for (Permission perm : plugin.getDescription().getPermissions()) {
+                    player.getAttachment().setPermission(perm, true);
+                }
+            }
         }
     }
 

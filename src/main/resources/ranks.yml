@@ -3,7 +3,7 @@ Owner:
   inheritance:
     - Admin
   permissions:
-    - *
+    - '*'
 
 Admin:
   prefix: "&c[ADMIN]"
