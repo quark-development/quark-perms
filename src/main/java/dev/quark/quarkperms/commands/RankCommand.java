@@ -25,11 +25,16 @@ public class RankCommand {
         String[] args = cmd.getArgs();
         Player player = cmd.getPlayer();
 
-        QPlayer qp = core.getPlayerManager().get(player);
+        QPlayer qp = core.getPlayerManager().get(player.getUniqueId());
 
         RankManager rankManager = core.getRankManager();
 
         if (rankManager == null) core.getLogger().info("AAAAAAAAAAAAAAAA");
+
+        rankManager.allRanks.forEach(r -> player.sendMessage(CC.trns(r.getPrefix())));
+
+        if (qp == null) player.sendMessage("null");
+        qp.getRanks().forEach(r -> player.sendMessage(r.getName()));
 
         Rank rank = rankManager.getHighest(qp.getRanks());
 

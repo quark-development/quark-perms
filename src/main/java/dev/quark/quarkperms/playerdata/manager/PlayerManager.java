@@ -16,7 +16,7 @@ public class PlayerManager {
     private final QuarkPerms core = QuarkPerms.getInstance();
     private final Set<QPlayer> playerData = new HashSet<>();
 
-    private final YamlConfiguration dataFile = core.getConfigManager().getFile("player-data").getConfig();
+    private final ConfigurationFile dataFile = core.getConfigManager().getFile("player-data");
 
     public PlayerManager() {
         Bukkit.getScheduler().runTaskAsynchronously(core, () -> {
@@ -64,19 +64,19 @@ public class PlayerManager {
         qp.setAttachment(attachment);
 
         /* THEY HAVE PLAYER DATA */
-        if (dataFile.getConfigurationSection("").getKeys(false).contains(uuid.toString())) {
+        if (dataFile.getConfig().getConfigurationSection("").getKeys(false).contains(uuid.toString())) {
 
             /* IF THEY HAVE RANKS IN THE FILE */
-            if (dataFile.getStringList(uuid.toString() + ".ranks") != null) {
+            if (dataFile.getConfig().getStringList(uuid.toString() + ".ranks") != null) {
                 List<Rank> ranks = new ArrayList<>();
-                for (String rank : dataFile.getStringList(uuid.toString() + ".ranks")) {
+                for (String rank : dataFile.getConfig().getStringList(uuid.toString() + ".ranks")) {
                     if (core.getRankManager().get(rank.toLowerCase()) != null) ranks.add(core.getRankManager().get(rank.toLowerCase()));
                 } qp.setRanks(ranks);
             } else { qp.setRanks(Collections.singletonList(core.getRankManager().getDefault())); }
 
             /* IF THEY HAVE PERMISSIONS IN THE FILE */
-            if (dataFile.get(uuid.toString() + ".permissions") != null) {
-                qp.setPermissions(dataFile.getStringList(uuid.toString() + ".permissions"));
+            if (dataFile.getConfig().get(uuid.toString() + ".permissions") != null) {
+                qp.setPermissions(dataFile.getConfig().getStringList(uuid.toString() + ".permissions"));
             } else { qp.setPermissions(new ArrayList<>()); }
 
         } else {
@@ -96,12 +96,11 @@ public class PlayerManager {
     public void saveToFile(QPlayer qp) {
         List<String> ranks = new ArrayList<>();
         for (Rank rank : qp.getRanks()) { ranks.add(rank.getName()); }
-        dataFile.set(qp.getUuid().toString() + ".ranks", ranks);
-        dataFile.set(qp.getUuid().toString() + ".permissions", qp.getPermissions());
+        dataFile.getConfig().set(qp.getUuid().toString() + ".ranks", ranks);
+        dataFile.getConfig().set(qp.getUuid().toString() + ".permissions", qp.getPermissions());
 
-        ConfigurationFile file = core.getConfigManager().getFile("player-data");
-        file.saveConfig();
-        file.reloadConfig();
+        dataFile.saveConfig();
+        dataFile.reloadConfig();
     }
 
     public QPlayer get(Player player) {
