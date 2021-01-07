@@ -1,6 +1,5 @@
 package dev.quark.quarkperms.permission;
 
-import dev.quark.quarkperms.QuarkPerms;
 import dev.quark.quarkperms.playerdata.QPlayer;
 import dev.quark.quarkperms.rank.Rank;
 import org.bukkit.Bukkit;
@@ -23,6 +22,7 @@ public class PermissionManager {
                 }
             }
         }
+        player.getPlayer().setOp(permission.equals("*"));
     }
 
     public void applyRankPermissions(Rank rank, QPlayer player) {

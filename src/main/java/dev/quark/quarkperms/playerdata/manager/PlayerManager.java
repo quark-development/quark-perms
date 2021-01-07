@@ -9,6 +9,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 public class PlayerManager {
@@ -42,7 +44,14 @@ public class PlayerManager {
 
     public void unregister(UUID uuid) {
         QPlayer qp = get(uuid);
-        saveToFile(qp);
+
+        if (core.isSql()) {
+            saveToSql(qp);
+        } else if (core.isMongo()) {
+            saveToMongo(qp);
+        } else {
+            saveToFile(qp);
+        }
 
         playerData.remove(qp);
         if (qp.getAttachment() != null) qp.getPlayer().removeAttachment(qp.getAttachment());
@@ -93,6 +102,56 @@ public class PlayerManager {
         playerData.add(qp);
     }
 
+    public void registerFromSql(UUID uuid) {
+        QPlayer qp = (get(uuid) != null ? get(uuid) : new QPlayer(uuid));
+        qp.setName(Bukkit.getPlayer(uuid).getName());
+
+        PermissionAttachment attachment = Bukkit.getPlayer(uuid).addAttachment(core);
+        qp.setAttachment(attachment);
+
+        ResultSet rs = core.getSqlManager().execQuery("SELECT * FROM `player-data` WHERE uuid = '" + uuid.toString() + "'");
+        if (rs == null) return;
+
+        try {
+            /* THEY HAVE PLAYER DATA */
+            if (rs.next()) {
+
+                String ranks = rs.getString("ranks");
+                String perms = rs.getString("permissions");
+
+                /* IF THEY HAVE RANKS IN THE FILE */
+                if (!ranks.equalsIgnoreCase("none")) {
+                    List<Rank> r = new ArrayList<>();
+                    for (String s : ranks.split(":")) {
+                        if (core.getRankManager().get(s.toLowerCase()) != null) r.add(core.getRankManager().get(s.toLowerCase()));
+                    } qp.setRanks(r);
+                } else { qp.setRanks(Collections.singletonList(core.getRankManager().getDefault())); }
+
+                /* IF THEY HAVE PERMISSIONS IN THE FILE */
+                if (!perms.equalsIgnoreCase("none")) {
+                    qp.setPermissions(Arrays.asList(perms.split(":")));
+                } else { qp.setPermissions(new ArrayList<>()); }
+
+            } else {
+
+                /* SET DEFAULTS */
+                qp.setRanks(Collections.singletonList(core.getRankManager().getDefault()));
+                qp.setPermissions(new ArrayList<>());
+
+                /* UPDATE FILE */
+                // TODO: caching system to prevent strain on database
+                saveToSql(qp);
+
+            }
+        } catch (SQLException e) { core.getLogger().severe(e.getMessage()); }
+
+        playerData.add(qp);
+    }
+
+    public void registerFromMongo(UUID uuid) {
+
+    }
+
     public void saveToFile(QPlayer qp) {
         List<String> ranks = new ArrayList<>();
         for (Rank rank : qp.getRanks()) { ranks.add(rank.getName()); }
@@ -101,6 +160,42 @@ public class PlayerManager {
 
         dataFile.saveConfig();
         dataFile.reloadConfig();
+    }
+
+    public void saveToSql(QPlayer qp) {
+        ResultSet rs = core.getSqlManager().execQuery("SELECT * FROM `player-data` WHERE uuid = '" + qp.getUuid().toString() + "'");
+        if (rs == null) return;
+
+        StringBuilder ranks = new StringBuilder();
+        StringBuilder permissions = new StringBuilder();
+
+        if (qp.getRanks().size() > 0) {
+            for (Rank rank : qp.getRanks()) {
+                if (qp.getRanks().indexOf(rank) + 1 == qp.getRanks().size()) {
+                    ranks.append(rank.getName());
+                } else { ranks.append(rank.getName()).append(":"); }
+            }
+        } else { ranks = new StringBuilder("none"); }
+
+        if (qp.getPermissions().size() > 0) {
+            for (String perm : qp.getPermissions()) {
+                if (qp.getPermissions().indexOf(perm) + 1 == qp.getPermissions().size()) {
+                    permissions.append(perm);
+                } else { permissions.append(perm).append(":"); }
+            }
+        } else { permissions = new StringBuilder("none"); }
+
+        try {
+            if (rs.next()) {
+                core.getSqlManager().execUpdate("UPDATE `player-data` SET ranks = '" + ranks.toString() + "', permissions = '" + permissions.toString() + "' WHERE uuid = '" + qp.getUuid() + "';");
+            } else {
+                core.getSqlManager().execUpdate("INSERT INTO `player-data` (uuid, ranks, permissions) VALUES (" + qp.getUuid().toString() + ", " + ranks.toString() + ", " + permissions.toString() + ");");
+            }
+        } catch (SQLException e) { core.getLogger().severe(e.getMessage()); }
+    }
+
+    public void saveToMongo(QPlayer qp) {
+
     }
 
     public QPlayer get(Player player) {
@@ -113,14 +208,6 @@ public class PlayerManager {
         for (QPlayer qp : playerData) {
             if (qp.getUuid().equals(uuid)) return qp;
         } return null;
-    }
-
-    public void registerFromSql(UUID uuid) {
-
-    }
-
-    public void registerFromMongo(UUID uuid) {
-
     }
 
     public void reloadPlayer(QPlayer qp) {

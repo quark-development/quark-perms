@@ -7,6 +7,7 @@ import dev.quark.quarkperms.expansions.PAPIExpansion;
 import dev.quark.quarkperms.framework.command.QuarkFramework;
 import dev.quark.quarkperms.framework.config.manager.ConfigManager;
 import dev.quark.quarkperms.permission.PermissionManager;
+import dev.quark.quarkperms.playerdata.listeners.IOListener;
 import dev.quark.quarkperms.playerdata.manager.PlayerManager;
 import dev.quark.quarkperms.rank.manager.RankManager;
 import lombok.Getter;
@@ -46,23 +47,21 @@ public class QuarkPerms extends JavaPlugin {
         registerManagers();
         registerCommands();
 
+        Bukkit.getPluginManager().registerEvents(new IOListener(), this);
+
         getLogger().info("Plugin enabled successfully!");
     }
 
     public void onDisable() {
         instance = null;
-
         getLogger().info("Plugin disabled successfully!");
     }
 
     protected void registerManagers() {
         configManager = new ConfigManager();
 
-        if (configManager.getFile("config").getConfig().getString("data").equalsIgnoreCase("SQL")) {
-            sql = true;
-        } else if (configManager.getFile("config").getConfig().getString("data").equalsIgnoreCase("MONGO")) {
-            mongo = true;
-        }
+        sql = configManager.getFile("config").getConfig().getString("data").equalsIgnoreCase("SQL");
+        mongo = configManager.getFile("config").getConfig().getString("data").equalsIgnoreCase("MONGO");
 
         if (sql) sqlManager = new SQLManager();
         if (mongo) mongoManager = new MongoManager();

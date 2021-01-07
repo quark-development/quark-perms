@@ -50,6 +50,9 @@ public class SQLManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        execStatement("CREATE TABLE IF NOT EXISTS `player-data` (`uuid` VARCHAR(36), `ranks` TEXT, `permissions` TEXT)");
+
     }
 
     private void establishConnection() throws SQLException {
