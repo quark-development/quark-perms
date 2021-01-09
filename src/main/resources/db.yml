@@ -4,3 +4,11 @@ SQL:
   database: ""
   user: ""
   password: ""
+MONGO:
+  host: ""
+  port: "27017"
+  database: ""
+  auth:
+    enabled: false
+    user: ""
+    password: ""

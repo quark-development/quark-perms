@@ -1,11 +1,14 @@
 package dev.quark.quarkperms.playerdata.manager;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.ReplaceOptions;
 import dev.quark.quarkperms.QuarkPerms;
 import dev.quark.quarkperms.framework.config.ConfigurationFile;
 import dev.quark.quarkperms.playerdata.QPlayer;
 import dev.quark.quarkperms.rank.Rank;
+import org.bson.Document;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 
@@ -13,14 +16,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import static dev.quark.quarkperms.utils.SerializationUtil.*;
+
 public class PlayerManager {
 
     private final QuarkPerms core = QuarkPerms.getInstance();
     private final Set<QPlayer> playerData = new HashSet<>();
+    private MongoCollection<Document> collection;
 
     private final ConfigurationFile dataFile = core.getConfigManager().getFile("player-data");
 
     public PlayerManager() {
+        if (core.isMongo())
+            collection = core.getMongoManager().getMongoDatabase().getCollection("player-data");
+
         Bukkit.getScheduler().runTaskAsynchronously(core, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 register(player.getUniqueId());
@@ -149,7 +158,27 @@ public class PlayerManager {
     }
 
     public void registerFromMongo(UUID uuid) {
+        QPlayer qp = (get(uuid) != null ? get(uuid) : new QPlayer(uuid));
+        qp.setName(Bukkit.getPlayer(uuid).getName());
 
+        PermissionAttachment attachment = Bukkit.getPlayer(uuid).addAttachment(core);
+        qp.setAttachment(attachment);
+
+        Document document = collection.find(Filters.eq("uuid", uuid.toString())).first();
+
+        if (document == null) {
+            qp.setRanks(Collections.singletonList(core.getRankManager().getDefault()));
+            qp.setPermissions(new ArrayList<>());
+
+            this.saveToMongo(qp);
+
+            return;
+        }
+
+        qp.setRanks(deserializeRanks(document.getString("ranks")));
+        qp.setPermissions(deserializePerms(document.getString("permissions")));
+
+        playerData.add(qp);
     }
 
     public void saveToFile(QPlayer qp) {
@@ -166,36 +195,26 @@ public class PlayerManager {
         ResultSet rs = core.getSqlManager().execQuery("SELECT * FROM `player-data` WHERE uuid = '" + qp.getUuid().toString() + "'");
         if (rs == null) return;
 
-        StringBuilder ranks = new StringBuilder();
-        StringBuilder permissions = new StringBuilder();
-
-        if (qp.getRanks().size() > 0) {
-            for (Rank rank : qp.getRanks()) {
-                if (qp.getRanks().indexOf(rank) + 1 == qp.getRanks().size()) {
-                    ranks.append(rank.getName());
-                } else { ranks.append(rank.getName()).append(":"); }
-            }
-        } else { ranks = new StringBuilder("none"); }
-
-        if (qp.getPermissions().size() > 0) {
-            for (String perm : qp.getPermissions()) {
-                if (qp.getPermissions().indexOf(perm) + 1 == qp.getPermissions().size()) {
-                    permissions.append(perm);
-                } else { permissions.append(perm).append(":"); }
-            }
-        } else { permissions = new StringBuilder("none"); }
+        String ranks = serializeRanks(qp.getRanks());
+        String permissions = serializePerms(qp.getPermissions());
 
         try {
             if (rs.next()) {
-                core.getSqlManager().execUpdate("UPDATE `player-data` SET ranks = '" + ranks.toString() + "', permissions = '" + permissions.toString() + "' WHERE uuid = '" + qp.getUuid() + "';");
+                core.getSqlManager().execUpdate("UPDATE `player-data` SET ranks = '" + ranks + "', permissions = '" + permissions + "' WHERE uuid = '" + qp.getUuid() + "';");
             } else {
-                core.getSqlManager().execUpdate("INSERT INTO `player-data` (uuid, ranks, permissions) VALUES (" + qp.getUuid().toString() + ", " + ranks.toString() + ", " + permissions.toString() + ");");
+                core.getSqlManager().execUpdate("INSERT INTO `player-data` (uuid, ranks, permissions) VALUES (" + qp.getUuid().toString() + ", " + ranks + ", " + permissions + ");");
             }
         } catch (SQLException e) { core.getLogger().severe(e.getMessage()); }
     }
 
     public void saveToMongo(QPlayer qp) {
+        Document document = new Document();
 
+        document.put("uuid", qp.getUuid().toString());
+        document.put("ranks", serializeRanks(qp.getRanks()));
+        document.put("permissions", serializePerms(qp.getPermissions()));
+
+        collection.replaceOne(Filters.eq("uuid", qp.getUuid().toString()), document, new ReplaceOptions().upsert(true));
     }
 
     public QPlayer get(Player player) {

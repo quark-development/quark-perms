@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class IOListener implements Listener {
 
-    private QuarkPerms core = QuarkPerms.getInstance();
+    private final QuarkPerms core = QuarkPerms.getInstance();
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
